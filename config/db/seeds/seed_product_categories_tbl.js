@@ -7,6 +7,9 @@ exports.seed = async function (knex) {
   await knex('product_categories').del()
   await knex('product_categories').insert([
     {
+      prod_cat_name: 'cacti'
+    },
+    {
       prod_cat_name: 'ferns'
     },
     {
@@ -27,8 +30,6 @@ exports.seed = async function (knex) {
     {
       prod_cat_name: 'vegetables'
     },
-    {
-      prod_cat_name: 'succulents and cacti'
-    },
+
   ]);
 };
