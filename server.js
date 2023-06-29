@@ -3,8 +3,24 @@ require('dotenv').config();
 const app = express();
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const cors = require('cors');
 
 const port = process.env.PORT;
+
+const allowedOrigins = ["http://localhost:4200","https://www.sanusnursery.com.np"];
+const corsOptions = {
+    origin: function(origin,callback){
+        if(!origin || allowedOrigins.indexOf(origin) !== -1){
+            callback(null,true);
+        }else{
+            callback(new Error('Not Allowed By CORS'));
+        }
+    },
+    credentials: true,
+}
+
+app.use(cors(corsOptions));
+
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
