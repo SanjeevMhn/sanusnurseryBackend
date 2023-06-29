@@ -131,8 +131,19 @@ const handleUserLogout = async (req, res) => {
     }
 }
 
+const getUserData = async(req,res) => {
+    try{
+        const userData = await knex.raw('select users.user_id,users.user_name,users.user_email,roles.role_name as user_role from users join roles on users.role_id = roles.role_id where users.user_id = ?',[req.user_id]);
+        res.status(200).json({user: userData.rows});
+    }catch(err){
+        console.error(err);
+        res.status(500).json({message: 'An error occured while getting user data'})
+    }
+}
+
 module.exports = {
     handleLogin,
     handleUserRegistration,
-    handleUserLogout
+    handleUserLogout,
+    getUserData
 }
