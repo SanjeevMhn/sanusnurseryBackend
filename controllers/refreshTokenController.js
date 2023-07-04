@@ -5,7 +5,7 @@ require('dotenv').config();
 const handleRefreshToken = async(req,res) => {
     const cookies = req.cookies;
     if(!cookies || !cookies.jwt){
-        res.status(401).json({message: 'Unauthenticated User'});
+        res.status(401).json({message: 'Unauthenticated User, user does not have required cookies'});
         return;
     }
 
