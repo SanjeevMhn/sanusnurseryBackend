@@ -3,10 +3,12 @@ const router = require('express').Router();
 const verifyJWT = require('../middleware/verifyJWT');
 const verifyRoles = require('../middleware/verifyUserRoles');
 const Role = require('../config/enums/roles');
+const uploader = require('../config/multer/multer');
+
 
 router.route('/')
     .get(productController.getAllProducts)
-    .post(verifyJWT,verifyRoles(Role.Admin),productController.addProduct);
+    .post(verifyJWT,verifyRoles(Role.Admin),uploader.single('image'),productController.addProduct);
 
 router.route('/id/:id')
     .get(productController.getProductById)

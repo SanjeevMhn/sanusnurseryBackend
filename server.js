@@ -23,7 +23,7 @@ app.use(cors(corsOptions));
 
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.urlencoded({extended: true}));
 
 app.use(cookieParser());
 
