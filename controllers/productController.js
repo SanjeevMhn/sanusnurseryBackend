@@ -88,7 +88,7 @@ const getProductCategories = async(req,res) => {
 const searchProductsByName = async(req,res) => {
     try{
         const productName = req.query.prod_name;
-        const products = await knex.raw('select prod_id,prod_name from products where prod_name ilike ?',[`%${productName}%`]);
+        const products = await knex.raw('select pd.prod_id,pd.prod_name,pc.prod_cat_name as prod_category,pd.prod_price,pd.prod_img, pd."prod_inStock" from products pd join product_categories pc on pd.prod_category = pc.prod_cat_id where pd.prod_name ilike ?',[`%${productName}%`]);
         res.status(200).json({products: products.rows});
     }catch(err){
         console.error(err);
