@@ -1,12 +1,7 @@
 
 const knex = require('../config/db/knex');
-const axios = require('axios');
-const FormData = require('form-data');
 const cloudinary = require('../config/cloudinary/cloudinary');
-const path = require('path');
-const datauri = require('datauri/parser');
-const parser = new datauri();
-// require('dotenv').config();
+require('dotenv').config();
 
 const getAllProducts = async (req, res) => {
     try {
@@ -106,57 +101,30 @@ const searchProductsByName = async (req, res) => {
 const addProduct = async (req, res) => {
     try {
         const { prod_name, prod_category, prod_price, prod_inStock } = req.body;
-
-        console.log(req.body, req.file);
-
-
-        const prodImg = req.file;
-        if (!prodImg) {
-            return res.status(400).json({message: "Error with image"});
+        if(!req.file){
+            return res.status(400).json({message: "No image found"});
         }
-        
-        const extName = path.extname(prodImg.originalname).toString();
-        const fileUri = parser.format(extName,prodImg.buffer);
-        console.log(fileUri);
-        // let form = new FormData();
-        // let newFileName = prod_name.replace(/\s+/g, '').toLowerCase();
-        // console.log(newFileName);
-        // let filePath = prodImg.path;
-        // form.append('image',prodImg, { filename: newFileName });
-        // console.log(form);
 
-        // let config = {
-        //     method: 'post',
-        //     url: process.env.IMGBB_UPLOAD_URL,
-        //     image: form
-        // };
+        const num_prod_category = Number(prod_category);
+        const num_prod_price = Number(prod_price);
+        const bool_prod_inStock = Boolean(prod_inStock);
 
-        // const fileUploadResponse = await axios.request(config);
-        // const fileUploadResponse = await axios.post('https://api.imgbb.com/1/upload',{
-        //     params:{
-        //         key: '5018ef517cd6cc1cd7b66c10d79463b0',
-        //     },
-        //     image: form,
-        // })
+        const imageUpload = await cloudinary.uploader.upload(req.file.path);
+        const prod_image_url = imageUpload.secure_url;
 
-        // console.log(fileUploadResponse.data);
-
-        // const imgUrl = fileUploadResponse.data.image.url;
-
-        // await knex('products').insert({
-        //     prod_name: prod_name,
-        //     prod_category: prod_category,
-        //     prod_price: prod_price,
-        //     prod_img: imgUrl,
-        //     prod_inStock: prod_inStock
-        // });
-
-        // res.status(201).json({ message: "New product data added!" });
-        const result = await cloudinary.v2.uploader.upload(fileUri.content);
-        console.log(result);
+        let insertObj = {
+            prod_name: prod_name,
+            prod_category: num_prod_category,
+            prod_price: num_prod_price,
+            prod_img: prod_image_url,
+            prod_inStock: bool_prod_inStock,
+        }
 
 
+        await knex('products').insert(insertObj);
 
+
+        res.status(201).json({ message: "New product added" })
 
     } catch (err) {
         //on duplicate product name
@@ -164,7 +132,8 @@ const addProduct = async (req, res) => {
             res.status(409).json({ message: 'Product already exists, please use a different name' });
             return
         }
-        res.status(500).json({ message: 'An error occured while add product data' });
+        console.log(err);
+        res.status(500).json({ message: 'An error occured while adding new product data' });
     }
 }
 
