@@ -12,7 +12,7 @@ router.route('/')
 
 router.route('/id/:id')
     .get(productController.getProductById)
-    .patch(verifyJWT,verifyRoles(Role.Admin),productController.updateProduct)
+    .patch(verifyJWT,verifyRoles(Role.Admin),uploader.single('image'),productController.updateProduct)
     .delete(verifyJWT,verifyRoles(Role.Admin),productController.deleteProduct);
 
 router.route('/category/:category').get(productController.getProductsByCategory);
