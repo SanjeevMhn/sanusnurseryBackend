@@ -16,6 +16,7 @@ router.route('/id/:id')
     .delete(verifyJWT,verifyRoles(Role.Admin),productController.deleteProduct);
 
 router.route('/category/:category').get(productController.getProductsByCategory);
+router.route('/category/related/:category').get(productController.getRelatedProducts);
 router.route('/category/id/:id').get(productController.getProductCategoryById);
 router.route('/categories').get(productController.getProductCategories);
 

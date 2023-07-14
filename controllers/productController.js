@@ -30,7 +30,6 @@ const getProductsByCategory = async (req, res) => {
     try {
 
         const page = parseInt(req.query.page) || 1;
-        const excludeId = parseInt(req.query.prod_id) || null;
         const pageSize = parseInt(req.query.pageSize) || 6;
         const offset = (page - 1) * pageSize;
         const limit = pageSize;
@@ -38,7 +37,6 @@ const getProductsByCategory = async (req, res) => {
 
         const category = req.params.category;
 
-        if (excludeId == null || !excludeId) {
             const products = await knex.raw('select pd.prod_id,pd.prod_name, pd.prod_price, pd.prod_img, pd."prod_inStock", pc.prod_cat_name as prod_category from products pd join product_categories pc on pd.prod_category = pc.prod_cat_id where pc.prod_cat_name = ? limit ? offset ?', [category, limit, offset])
             const totalCount = await knex.raw('select count(*) from products pd join product_categories pc on pd.prod_category = pc.prod_cat_id where pc.prod_cat_name = ?', [category]);
             res.status(200).json({
@@ -49,21 +47,39 @@ const getProductsByCategory = async (req, res) => {
 
             });
             return;
-        }
 
-        const products = await knex.raw('select pd.prod_id,pd.prod_name, pd.prod_price, pd.prod_img, pd."prod_inStock", pc.prod_cat_name from products pd join product_categories pc on pd.prod_category = pc.prod_cat_id where pc.prod_cat_name = ? and pd.prod_id <> ? limit ? offset ?', [category, excludeId, limit, offset])
-        const totalCount = products.rowCount;
-        res.status(200).json({
-            currentPage: page,
-            totalPages: Math.ceil(totalCount / pageSize),
-            totalItems: totalCount,
-            products: products.rows
-        });
+
 
 
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'An error occured while retrieving product data' });
+    }
+}
+
+const getRelatedProducts = async (req, res) => {
+    try {
+
+        const page = parseInt(req.query.page) || 1;
+        const excludeId = parseInt(req.query.prod_id) || null;
+        const pageSize = parseInt(req.query.pageSize) || 6;
+        const offset = (page - 1) * pageSize;
+        const limit = pageSize;
+
+        const category = req.params.category;
+        const products = await knex.raw('select pd.prod_id,pd.prod_name, pd.prod_price, pd.prod_img, pd."prod_inStock", pc.prod_cat_name from products pd join product_categories pc on pd.prod_category = pc.prod_cat_id where pc.prod_cat_name = ? and pd.prod_id <> ? limit ? offset ?', [category, excludeId, limit, offset])
+        const totalCount = await knex.raw('select count(*) from products pd join product_categories pc on pd.prod_category = pc.prod_cat_id where pc.prod_cat_name = ? and pd.prod_id <> ?', [category, excludeId]);
+
+        res.status(200).json({
+            currentPage: page,
+            totalPages: Math.ceil(totalCount.rows[0].count / pageSize),
+            totalItems: totalCount.rows[0].count,
+            products: products.rows
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'An error occured while retriving related products data' });
     }
 }
 
@@ -217,5 +233,6 @@ module.exports = {
     addProduct,
     updateProduct,
     getProductCategoryById,
+    getRelatedProducts,
     deleteProduct
 }
