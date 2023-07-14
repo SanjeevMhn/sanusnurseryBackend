@@ -39,13 +39,14 @@ const getProductsByCategory = async (req, res) => {
         const category = req.params.category;
 
         if (excludeId == null || !excludeId) {
-            const products = await knex.raw('select pd.prod_id,pd.prod_name, pd.prod_price, pd.prod_img, pd."prod_inStock", pc.prod_cat_name from products pd join product_categories pc on pd.prod_category = pc.prod_cat_id where pc.prod_cat_name = ? limit ? offset ?', [category, limit, offset])
-            const totalCount = products.rowCount;
+            const products = await knex.raw('select pd.prod_id,pd.prod_name, pd.prod_price, pd.prod_img, pd."prod_inStock", pc.prod_cat_name as prod_category from products pd join product_categories pc on pd.prod_category = pc.prod_cat_id where pc.prod_cat_name = ? limit ? offset ?', [category, limit, offset])
+            const totalCount = await knex.raw('select count(*) from products pd join product_categories pc on pd.prod_category = pc.prod_cat_id where pc.prod_cat_name = ?', [category]);
             res.status(200).json({
                 currentPage: page,
-                totalPages: Math.ceil(totalCount / pageSize),
-                totalItems: totalCount,
+                totalPages: Math.ceil(totalCount.rows[0].count / pageSize),
+                totalItems: totalCount.rows[0].count,
                 products: products.rows
+
             });
             return;
         }
@@ -90,7 +91,7 @@ const getProductCategories = async (req, res) => {
 const searchProductsByName = async (req, res) => {
     try {
         const productName = req.query.prod_name;
-        const products = await knex.raw('select pd.prod_id,pd.prod_name,pc.prod_cat_name as prod_category,pd.prod_price,pd.prod_img, pd."prod_inStock" from products pd join product_categories pc on pd.prod_category = pc.prod_cat_id where pd.prod_name ilike ?', [`%${productName}%`]);
+        const products = await knex.raw('select pd.prod_id,pd.prod_name,pd.prod_category,pd.prod_price,pd.prod_img, pd."prod_inStock" from products pd where pd.prod_name ilike ?', [`%${productName}%`]);
         res.status(200).json({ products: products.rows });
     } catch (err) {
         console.error(err);
@@ -141,12 +142,11 @@ const updateProduct = async (req, res) => {
     try {
         const prod_id = req.params.id;
         const updates = req.body;
-        console.log(updates);
         const product = await knex.select('*').from('products').where('prod_id', prod_id);
 
         if (!product || product.length == 0) {
-            res.status(404).json({ message: "Product not found" });
-            return;
+            return res.status(404).json({ message: "Product not found" });
+
         }
 
         if (req.file) {
@@ -160,18 +160,34 @@ const updateProduct = async (req, res) => {
             await knex('products')
                 .where('prod_id', prod_id)
                 .update(updatedObj);
-            return res.status(204).json({ message: 'Product has been updated successfully' });
+
+
+        } else {
+            await knex('products')
+                .where('prod_id', prod_id)
+                .update(updates);
+
         }
-        await knex('products')
-            .where('prod_id', prod_id)
-            .update(updates);
+
+
+
+
         res.status(204).json({ message: 'Product has been updated successfully' });
-
-
 
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "An error occured while updating product data" });
+    }
+}
+
+const getProductCategoryById = async (req, res) => {
+    try {
+        const cat_id = req.params.id;
+        const productCatName = await knex.select('prod_cat_id', 'prod_cat_name').from('product_categories').where('prod_cat_id', cat_id);
+        res.status(200).json({ product_category: productCatName });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "An error occured while getting the product category" });
     }
 }
 
@@ -200,5 +216,6 @@ module.exports = {
     searchProductsByName,
     addProduct,
     updateProduct,
+    getProductCategoryById,
     deleteProduct
 }
