@@ -30,7 +30,8 @@ const handleLogin = async (req, res) => {
                     "user_id": foundUser[0].user_id,
                     "role_id": foundUser[0].role_id
                 }
-            }, process.env.ACCESS_TOKEN_SECRET,
+            },
+            process.env.ACCESS_TOKEN_SECRET,
             { expiresIn: '5m' }
         );
 
@@ -40,7 +41,8 @@ const handleLogin = async (req, res) => {
                     "user_id": foundUser[0].user_id,
                     "role_id": foundUser[0].role
                 }
-            }, process.env.REFRESH_TOKEN_SECRET,
+            },
+            process.env.REFRESH_TOKEN_SECRET,
             { expiresIn: '1d' }
         )
 
@@ -131,13 +133,13 @@ const handleUserLogout = async (req, res) => {
     }
 }
 
-const getUserData = async(req,res) => {
-    try{
-        const userData = await knex.raw('select users.user_id,users.user_name,users.user_email,roles.role_name as user_role from users join roles on users.role_id = roles.role_id where users.user_id = ?',[req.user_id]);
-        res.status(200).json({user: userData.rows});
-    }catch(err){
+const getUserData = async (req, res) => {
+    try {
+        const userData = await knex.raw('select users.user_id,users.user_name,users.user_email,roles.role_name as user_role from users join roles on users.role_id = roles.role_id where users.user_id = ?', [req.user_id]);
+        res.status(200).json({ user: userData.rows });
+    } catch (err) {
         console.error(err);
-        res.status(500).json({message: 'An error occured while getting user data'})
+        res.status(500).json({ message: 'An error occured while getting user data' })
     }
 }
 
