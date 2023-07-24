@@ -12,7 +12,17 @@ const getAllProducts = async (req, res) => {
         const limit = pageSize;
 
         // const products = await knex.select('*').from('products').limit(limit).offset(offset);
-        const products = await knex.raw('select pd.prod_id, pd.prod_name, pd.prod_price, pd.prod_img, pd."prod_inStock", pc.prod_cat_name as prod_category from products pd join product_categories pc on pd.prod_category = pc.prod_cat_id order by pd.prod_name asc limit ? offset ?', [limit, offset])
+        const products = await knex.raw(`select 
+                                            pd.prod_id, 
+                                            pd.prod_name, 
+                                            pd.prod_price, 
+                                            pim.image_url as prod_img, 
+                                            pd."prod_inStock", 
+                                            pc.prod_cat_name as prod_category 
+                                        from products pd 
+                                        inner join product_categories pc on pd.prod_category = pc.prod_cat_id 
+                                        inner join product_image_details pim on pd.prod_id = pim.product_id 
+                                        order by pd.prod_name asc limit ? offset ?`, [limit, offset]);
         const totalCount = await knex.raw('select count(*) from products');
         res.status(200).json({
             currentPage: page,
@@ -37,7 +47,17 @@ const getProductsByCategory = async (req, res) => {
 
         const category = req.params.category;
 
-            const products = await knex.raw('select pd.prod_id,pd.prod_name, pd.prod_price, pd.prod_img, pd."prod_inStock", pc.prod_cat_name as prod_category from products pd join product_categories pc on pd.prod_category = pc.prod_cat_id where pc.prod_cat_name = ? limit ? offset ?', [category, limit, offset])
+        const products = await knex.raw(`select 
+                                            pd.prod_id,
+                                            pd.prod_name, 
+                                            pd.prod_price, 
+                                            pim.image_url as prod_img, 
+                                            pd."prod_inStock", 
+                                            pc.prod_cat_name as prod_category 
+                                            from products pd 
+                                            inner join product_categories pc on pd.prod_category = pc.prod_cat_id 
+                                            inner join product_image_details pim on pd.prod_id = pim.product_id 
+                                            where pc.prod_cat_name = ? limit ? offset ?`, [category, limit, offset])
             const totalCount = await knex.raw('select count(*) from products pd join product_categories pc on pd.prod_category = pc.prod_cat_id where pc.prod_cat_name = ?', [category]);
             res.status(200).json({
                 currentPage: page,
@@ -67,7 +87,17 @@ const getRelatedProducts = async (req, res) => {
         const limit = pageSize;
 
         const category = req.params.category;
-        const products = await knex.raw('select pd.prod_id,pd.prod_name, pd.prod_price, pd.prod_img, pd."prod_inStock", pc.prod_cat_name from products pd join product_categories pc on pd.prod_category = pc.prod_cat_id where pc.prod_cat_name = ? and pd.prod_id <> ? limit ? offset ?', [category, excludeId, limit, offset])
+        const products = await knex.raw(`select 
+                                            pd.prod_id,
+                                            pd.prod_name, 
+                                            pd.prod_price, 
+                                            pim.image_url as prod_img, 
+                                            pd."prod_inStock", 
+                                            pc.prod_cat_name 
+                                        from products pd 
+                                        inner join product_categories pc on pd.prod_category = pc.prod_cat_id
+                                        inner join product_image_details pim on pd.prod_id = pim.product_id 
+                                        where pc.prod_cat_name = ? and pd.prod_id <> ? limit ? offset ?`, [category, excludeId, limit, offset])
         const totalCount = await knex.raw('select count(*) from products pd join product_categories pc on pd.prod_category = pc.prod_cat_id where pc.prod_cat_name = ? and pd.prod_id <> ?', [category, excludeId]);
 
         res.status(200).json({
@@ -85,7 +115,16 @@ const getRelatedProducts = async (req, res) => {
 
 const getProductById = async (req, res) => {
     try {
-        const product = await knex.raw('select pd.prod_id,pd.prod_name,pd.prod_category,pd.prod_price,pd.prod_img, pd."prod_inStock" from products pd where pd.prod_id = ?', [req.params.id]);
+        const product = await knex.raw(`select 
+                                            pd.prod_id,
+                                            pd.prod_name,
+                                            pd.prod_category,
+                                            pd.prod_price,
+                                            pim.image_url as prod_img, 
+                                            pd."prod_inStock" 
+                                        from products pd 
+                                        inner join product_image_details pim on pd.prod_id = pim.product_id 
+                                        where pd.prod_id = ?`, [req.params.id]);
         res.status(200).json({ product: product.rows });
 
     } catch (err) {
@@ -127,18 +166,26 @@ const addProduct = async (req, res) => {
         const bool_prod_inStock = Boolean(prod_inStock);
 
         const imageUpload = await cloudinary.uploader.upload(req.file.path);
-        const prod_image_url = imageUpload.secure_url;
+        const image_url = imageUpload.secure_url;
+        const image_public_id = imageUpload.public_id;
+        const image_signature = imageUpload.signature;
 
         let insertObj = {
             prod_name: prod_name,
             prod_category: num_prod_category,
             prod_price: num_prod_price,
-            prod_img: prod_image_url,
             prod_inStock: bool_prod_inStock,
         }
 
 
-        await knex('products').insert(insertObj);
+        let lastInserId = await knex('products').returning('prod_id').insert(insertObj);
+
+        await knex('product_image_details').insert({
+            product_id: lastInserId[0].prod_id,
+            public_id: image_public_id,
+            signature: image_signature,
+            image_url: image_url
+        });
 
 
         res.status(201).json({ message: "New product added" })
@@ -215,6 +262,8 @@ const deleteProduct = async (req, res) => {
             res.status(404).json({ message: 'The product does not exist' });
             return;
         }
+        const productImgDetails = await knex('product_image_details').where('product_id',prod_id);
+        await cloudinary.uploader.destroy(productImgDetails[0].public_id, productImgDetails[0].signature);
         await knex('products').where('prod_id', prod_id).del();
         res.status(410).json({ message: 'Product has been deleted' });
 
