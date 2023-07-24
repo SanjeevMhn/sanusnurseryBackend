@@ -10,7 +10,8 @@ exports.up = function(knex) {
         table.integer('payment_type').notNullable(),
         table.string('payment_status').notNullable().defaultTo('PENDING'),
         table.timestamp('created_at').defaultTo(knex.fn.now()),
-        table.timestamp('updated_at').defaultTo(knex.fn.now())
+        table.timestamp('updated_at').defaultTo(knex.fn.now()),
+        table.foreign('payment_type').references('payment_category.payment_id')
     })
 };
 
