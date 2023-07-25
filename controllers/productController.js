@@ -216,7 +216,7 @@ const updateProduct = async (req, res) => {
             const productOldImg = await knex.select('*').from('product_image_details').where('product_id', prod_id);
             await cloudinary.uploader.destroy(productOldImg[0].public_id, productOldImg[0].signature);
             await knex('product_image_details').where('product_id',prod_id).del();
-            
+
             const imageUpload = await cloudinary.uploader.upload(req.file.path);
             const image_url = imageUpload.secure_url;
             const image_public_id = imageUpload.public_id;
@@ -276,7 +276,7 @@ const deleteProduct = async (req, res) => {
         const productImgDetails = await knex('product_image_details').where('product_id',prod_id);
         await cloudinary.uploader.destroy(productImgDetails[0].public_id, productImgDetails[0].signature);
         await knex('products').where('prod_id', prod_id).del();
-        res.status(410).json({ message: 'Product has been deleted' });
+        res.status(200).json({ message: 'Product has been deleted' });
 
     } catch (err) {
         console.error(err);
