@@ -213,17 +213,28 @@ const updateProduct = async (req, res) => {
         }
 
         if (req.file) {
+            const productOldImg = await knex.select('*').from('product_image_details').where('product_id', prod_id);
+            await cloudinary.uploader.destroy(productOldImg[0].public_id, productOldImg[0].signature);
+            await knex('product_image_details').where('product_id',prod_id).del();
+            
             const imageUpload = await cloudinary.uploader.upload(req.file.path);
-            const prod_image_url = imageUpload.secure_url;
+            const image_url = imageUpload.secure_url;
+            const image_public_id = imageUpload.public_id;
+            const image_signature = imageUpload.signature;
 
             let updatedObj = {
-                ...updates,
-                prod_img: prod_image_url
+                ...updates
             }
             await knex('products')
                 .where('prod_id', prod_id)
                 .update(updatedObj);
 
+            await knex('product_image_details').insert({
+                product_id: prod_id,
+                public_id: image_public_id,
+                signature: image_signature,
+                image_url: image_url
+            });
 
         } else {
             await knex('products')
