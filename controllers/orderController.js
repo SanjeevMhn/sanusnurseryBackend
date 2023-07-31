@@ -39,7 +39,32 @@ const addOrder = async(req,res) => {
     }
 }
 
+const getAllOrders = async (req,res) => {
+    try{
+        const page = parseInt(req.query.page) || 1;
+        const pageSize = parseInt(req.query.pageSize) || 6;
+        const offset = (page - 1) * pageSize;
+        const limit = pageSize;
+
+        const orders = await knex.select('*').from('orders').limit(limit).offset(offset);
+        const ordersCount = await knex('orders').count('order_id');
+
+        res.status(200).json({
+            currentPage: page,
+            totalPages: Math.ceil(ordersCount[0].count / pageSize),
+            totalItem: parseInt(ordersCount[0].count),
+            orders: orders
+        })
+
+
+    }catch(err){
+        console.log(err);
+        res.status(500).json({message: "An error occured while getting orders"});
+    }
+}
+
 
 module.exports = {
-    addOrder
+    addOrder,
+    getAllOrders
 }

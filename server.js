@@ -27,7 +27,7 @@ app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 
 app.use('/api/v1/products',require('./routes/productRoute'));
-app.use('/api/v1/order',require('./routes/orderRoute'));
+app.use('/api/v1/orders',require('./routes/orderRoute'));
 app.use('/api/v1/auth',require('./routes/authRoute'));
 app.use('/api/v1/refresh',require('./routes/refreshRoute'));
 
