@@ -19,7 +19,7 @@ const addOrder = async(req,res) => {
             user_name: user_name,
             user_email: user_email,
             user_contact: user_contact,
-            payment_id: Number(payment_type)
+            payment_type: Number(payment_type)
         }
 
         let lastInsertId = await knex('orders').returning('order_id').insert(orderInsert);
@@ -42,7 +42,7 @@ const addOrder = async(req,res) => {
 const getAllOrders = async (req,res) => {
     try{
         const page = parseInt(req.query.page) || 1;
-        const pageSize = parseInt(req.query.pageSize) || 6;
+        const pageSize = parseInt(req.query.pageSize) || 10;
         const offset = (page - 1) * pageSize;
         const limit = pageSize;
 
@@ -63,8 +63,26 @@ const getAllOrders = async (req,res) => {
     }
 }
 
+const getPaymentTypeFromId = async(req,res) => {
+    try{
+        const paymentTypeId = Number(req.params.payment_type_id);
+        if(!paymentTypeId){
+            return res.status(404).json({message: "Payment type id not found"});
+        }
+        const paymentType = await knex.select('payment_type').from('payment_category').where('payment_id',paymentTypeId);
+        res.status(200).json({
+            paymentType: paymentType[0].payment_type
+        });
+
+    }catch(err){
+        console.log(err);
+        res.status(500).json({message: "An error occured whie getting payment type"})
+    }
+}
+
 
 module.exports = {
     addOrder,
-    getAllOrders
+    getAllOrders,
+    getPaymentTypeFromId
 }

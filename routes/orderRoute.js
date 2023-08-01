@@ -9,5 +9,7 @@ router.route('/')
     .get(verifyJWT,verifyUserRoles(Role.Admin),orderController.getAllOrders)
     .post(orderController.addOrder);
 
+router.route('/payment/type/:payment_type_id')
+    .get(verifyJWT,verifyUserRoles(Role.Admin), orderController.getPaymentTypeFromId)
 
 module.exports = router;
