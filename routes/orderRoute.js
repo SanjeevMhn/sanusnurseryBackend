@@ -9,7 +9,11 @@ router.route('/')
     .get(verifyJWT,verifyUserRoles(Role.Admin),orderController.getAllOrders)
     .post(orderController.addOrder);
 
-router.route('/payment/type/:payment_type_id')
-    .get(verifyJWT,verifyUserRoles(Role.Admin), orderController.getPaymentTypeFromId)
+// router.route('/payment/type/:payment_type_id')
+//     .get(verifyJWT,verifyUserRoles(Role.Admin), orderController.getPaymentTypeFromId)
+
+router.route('/id/:order_id').get(verifyJWT,verifyUserRoles(Role.Admin),orderController.getOrderById);
+router.route('/id/items/:order_id').get(verifyJWT,verifyUserRoles(Role.Admin),orderController.getOrderItems);
+router.route('/id/payment_detail/:order_id').get(verifyJWT,verifyUserRoles(Role.Admin),orderController.getPaymentDetail);
 
 module.exports = router;
