@@ -7,7 +7,7 @@ exports.seed = async function (knex) {
   await knex('product_categories').del()
   await knex('product_categories').insert([
     {
-      prod_cat_name: 'cacti'
+      prod_cat_name: 'cacti and succulents'
     },
     {
       prod_cat_name: 'ferns'

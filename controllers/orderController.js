@@ -2,6 +2,30 @@ const knex = require('../config/db/knex');
 const cloudinary = require('../config/cloudinary/cloudinary');
 require('dotenv').config();
 
+
+const countOrders = async(req,res) => {
+    try{
+        const orderCount = await knex.raw('select count(*) from orders');
+        res.status(200).json({count: orderCount.rows[0].count})
+    }catch(err){
+        console.log(err);
+        res.status(500).json({message: "An error occured while getting total orders"});
+    }
+}
+
+const getMostOrderedProducts = async (req,res) => {
+    try{
+
+        const getProductDetails = await knex.raw(`select pd.prod_name, pc.prod_cat_name as prod_category,pim.image_url,pd.prod_price, count(od.product_id) as frequency from order_details od inner join products pd on od.product_id = pd.prod_id inner join product_categories pc on pc.prod_cat_id = pd.prod_category inner join product_image_details pim on od.product_id = pim.product_id group by od.product_id,pd.prod_name,pc.prod_cat_name,pim.image_url, pd.prod_price  order by frequency desc`);
+
+        res.status(200).json({products: getProductDetails.rows});
+
+    }catch(err) {
+        console.log(err);
+        res.status(500).json({message: "An error occured while getting the most ordered products"});
+    }
+}
+
 const addOrder = async(req,res) => {
     try{
         await knex.transaction(async trx => {
@@ -162,8 +186,19 @@ const getPaymentTypeFromId = async(req,res) => {
     }
 }
 
+const getOrderByDate = async(req,res) => {
+    try{
+
+    }catch(err){
+        console.log(err);
+        res.status(500).json({message: "An error occured while getting order by date"});
+    }
+}
+
 
 module.exports = {
+    countOrders,
+    getMostOrderedProducts,
     addOrder,
     getAllOrders,
     getOrderById,
