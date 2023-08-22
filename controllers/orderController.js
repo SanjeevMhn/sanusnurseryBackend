@@ -5,7 +5,11 @@ require('dotenv').config();
 
 const countOrders = async(req,res) => {
     try{
-        const orderCount = await knex.raw('select count(*) from orders');
+        const orderCount = await knex.raw(`select 
+                                            count(ord.*) 
+                                        from orders ord 
+                                        inner join payment_detail pyd on ord.order_id = pyd.order_id 
+                                        where order_number is not null`);
         res.status(200).json({count: orderCount.rows[0].count})
     }catch(err){
         console.log(err);
@@ -16,13 +20,43 @@ const countOrders = async(req,res) => {
 const getMostOrderedProducts = async (req,res) => {
     try{
 
-        const getProductDetails = await knex.raw(`select pd.prod_name, pc.prod_cat_name as prod_category,pim.image_url,pd.prod_price, count(od.product_id) as frequency from order_details od inner join products pd on od.product_id = pd.prod_id inner join product_categories pc on pc.prod_cat_id = pd.prod_category inner join product_image_details pim on od.product_id = pim.product_id group by od.product_id,pd.prod_name,pc.prod_cat_name,pim.image_url, pd.prod_price  order by frequency desc`);
+        const getProductDetails = await knex.raw(`select 
+                                                    pd.prod_name, 
+                                                    pc.prod_cat_name as prod_category,
+                                                    pim.image_url,pd.prod_price, 
+                                                    count(od.product_id) as frequency 
+                                                from order_details od 
+                                                inner join products pd on od.product_id = pd.prod_id 
+                                                inner join product_categories pc on pc.prod_cat_id = pd.prod_category 
+                                                inner join product_image_details pim on od.product_id = pim.product_id 
+                                                group by od.product_id,pd.prod_name,pc.prod_cat_name,pim.image_url, pd.prod_price  
+                                                order by frequency desc`);
 
         res.status(200).json({products: getProductDetails.rows});
 
     }catch(err) {
         console.log(err);
         res.status(500).json({message: "An error occured while getting the most ordered products"});
+    }
+}
+
+const getProductDeliveredAndPaymentStatus = async(req,res) => {
+    try{
+        const getDetails = await knex.raw(`select 
+                                            ord.order_id, 
+                                            ord.order_number,
+                                            ord.order_date,
+                                            ord.order_total,
+                                            ord.order_status,
+                                            pyd.payment_status
+                                        from orders ord
+                                        inner join payment_detail pyd on ord.order_id = pyd.order_id
+                                        order by ord.order_date desc`);
+
+        res.status(200).json({orders: getDetails.rows}); 
+    }catch(err){
+        console.log(err);
+        res.status(500).json({message: "An error occured while getting product delivery and payment status"});
     }
 }
 
@@ -199,6 +233,7 @@ const getOrderByDate = async(req,res) => {
 module.exports = {
     countOrders,
     getMostOrderedProducts,
+    getProductDeliveredAndPaymentStatus,
     addOrder,
     getAllOrders,
     getOrderById,

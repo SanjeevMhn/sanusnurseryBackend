@@ -20,4 +20,6 @@ router.route('/count').get(verifyJWT,verifyUserRoles(Role.Admin),orderController
 
 router.route('/repeatedProducts').get(verifyJWT,verifyUserRoles(Role.Admin),orderController.getMostOrderedProducts);
 
+router.route('/orderDeliveryPaymentStatus').get(verifyJWT,verifyUserRoles(Role.Admin),orderController.getProductDeliveredAndPaymentStatus)
+
 module.exports = router;

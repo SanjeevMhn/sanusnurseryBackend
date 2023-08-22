@@ -20,7 +20,6 @@ const countAllProductCategories = async(req,res) => {
     try{
 
         const prodCatCount = await knex.raw('select count(*) from product_categories');
-        console.log(prodCatCount);
         res.status(200).json({count: prodCatCount.rows[0].count});
 
     }catch(err){
