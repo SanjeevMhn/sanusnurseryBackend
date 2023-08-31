@@ -9,5 +9,7 @@ router.route('/')
 	.get(verifyJWT,verifyRoles(Role.Admin),categoryController.getAllCategories)
 	.post(verifyJWT,verifyRoles(Role.Admin),categoryController.addCategory);
 
-
+router.route('/id/:id')
+	.delete(verifyJWT,verifyRoles(Role.Admin),categoryController.deleteCategory)
+	.patch(verifyJWT,verifyRoles(Role.Admin),categoryController.updateCategory)
 module.exports = router;
