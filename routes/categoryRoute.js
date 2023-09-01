@@ -12,4 +12,5 @@ router.route('/')
 router.route('/id/:id')
 	.delete(verifyJWT,verifyRoles(Role.Admin),categoryController.deleteCategory)
 	.patch(verifyJWT,verifyRoles(Role.Admin),categoryController.updateCategory)
+	.get(verifyJWT, verifyRoles(Role.Admin),categoryController.getCategoryById)
 module.exports = router;

@@ -12,6 +12,21 @@ const getAllCategories = async(req, res) => {
 	}
 }
 
+const getCategoryById = async(req,res) => {
+
+	try{
+		const catId = req.params.id;
+		if(!catId || catId == null){
+			return res.status(400).json({message: "Category id not found"});
+		}
+		const category = await knex.select('prod_cat_id','prod_cat_name').from('product_categories').where('prod_cat_id',catId);
+		res.status(200).json({category: category[0]});
+	}catch(err){
+
+	}
+
+}
+
 const addCategory = async(req,res) => {
 	try{
 		const { category_name } = req.body;
@@ -86,6 +101,7 @@ const updateCategory = async(req,res) => {
 
 module.exports = {
 	getAllCategories,
+	getCategoryById,
 	addCategory,
 	deleteCategory,
 	updateCategory
