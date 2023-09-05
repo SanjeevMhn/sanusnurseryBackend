@@ -22,4 +22,7 @@ router.route('/repeatedProducts').get(verifyJWT,verifyUserRoles(Role.Admin),orde
 
 router.route('/orderDeliveryPaymentStatus').get(verifyJWT,verifyUserRoles(Role.Admin),orderController.getProductDeliveredAndPaymentStatus)
 
+router.route('/search/date/:order_date').get(verifyJWT, verifyUserRoles(Role.Admin),orderController.searchOrderByDate);
+router.route('/search/user_name').get(verifyJWT, verifyUserRoles(Role.Admin),orderController.searchOrderByUserName);
+
 module.exports = router;

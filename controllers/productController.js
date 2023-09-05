@@ -160,7 +160,7 @@ const getProductById = async (req, res) => {
 
 const getProductCategories = async (req, res) => {
     try {
-        const productCategories = await knex.select('prod_cat_id', 'prod_cat_name').from('product_categories');
+        const productCategories = await knex.select('prod_cat_id', 'prod_cat_name').from('product_categories').orderBy('prod_cat_name','asc');
         res.status(200).json({ categories: productCategories })
     } catch (err) {
         console.error(err);

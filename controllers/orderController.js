@@ -114,7 +114,7 @@ const getAllOrders = async (req,res) => {
         const offset = (page - 1) * pageSize;
         const limit = pageSize;
 
-        const orders = await knex.raw(`select ord.*,pd.payment_status,pd.payment_type from orders ord inner join payment_detail pd on ord.order_id = pd.order_id limit ? offset ?`,[limit,offset]);
+        const orders = await knex.raw(`select ord.*,ord.order_date::TEXT,pd.payment_status,pd.payment_type from orders ord inner join payment_detail pd on ord.order_id = pd.order_id limit ? offset ?`,[limit,offset]);
         const ordersCount = await knex.raw(`select count(*) as row_count from (select ord.*,pd.payment_status,pd.payment_type from orders ord inner join payment_detail pd on ord.order_id = pd.order_id) as result`);
 
         res.status(200).json({
@@ -139,7 +139,7 @@ const getOrderById = async(req,res) => {
             return res.status(404).json({message: "Order id not found"});
         }
 
-        const order = await knex.raw(`select ord.*,pd.payment_status,pd.payment_type from orders ord inner join payment_detail pd on ord.order_id = pd.order_id where ord.order_id = ?`,orderId);
+        const order = await knex.raw(`select ord.*,ord.order_date::TEXT,pd.payment_status,pd.payment_type from orders ord inner join payment_detail pd on ord.order_id = pd.order_id where ord.order_id = ?`,orderId);
 
         res.status(200).json({
             order: order.rows[0]
@@ -220,13 +220,45 @@ const getPaymentTypeFromId = async(req,res) => {
     }
 }
 
-const getOrderByDate = async(req,res) => {
+const searchOrderByDate = async(req,res) => {
     try{
+        const searchDate = String(req.params.order_date);
+        if(!searchDate){
+            return res.status(400).json({message: "Order date not found"});
+        }
+
+        const orders = await knex.raw('select ord.*, ord.order_date::TEXT from orders ord where substring(order_date::TEXT,1,10) = ?',[searchDate]);
+
+        res.status(200).json({orders: orders.rows})
 
     }catch(err){
         console.log(err);
-        res.status(500).json({message: "An error occured while getting order by date"});
+        res.status(500).json({message: 'An error occured while searching order details by date'})
     }
+}
+
+const searchOrderByUserName = async(req,res)=> {
+
+    try{
+        const userName = req.query.name;
+        if(!userName || userName == '' || userName == null){
+            return res.status(400).json({message: "No user name found."});
+        }
+        console.log(userName);
+        const orders = await knex.raw(`select 
+                                        ord.*,ord.order_date::TEXT
+                                        from orders ord
+                                        inner join payment_detail pd
+                                        on ord.order_id = pd.order_id
+                                        where ord.user_name ilike ?`,[`%${userName}%`]);
+
+
+        res.status(200).json({orders: orders.rows});
+    }catch(err){
+        consol.log(err);
+        res.status(500).json({message: 'An error occured while searching order by user name'});
+    }
+
 }
 
 
@@ -239,5 +271,7 @@ module.exports = {
     getOrderById,
     getOrderItems,
     getPaymentDetail,
-    getPaymentTypeFromId
+    getPaymentTypeFromId,
+    searchOrderByDate,
+    searchOrderByUserName
 }

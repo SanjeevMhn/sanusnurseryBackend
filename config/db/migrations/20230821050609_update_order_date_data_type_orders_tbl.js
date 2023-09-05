@@ -14,6 +14,6 @@ exports.up = function(knex) {
  */
 exports.down = function(knex) {
  	return knex.schema.alterTable('orders',table => {
- 		table.timestamp('order_date').defaultTo(kenx.fn.now())
+ 		table.timestamp('order_date').defaultTo(knex.fn.now()).alter()
  	})
 };
