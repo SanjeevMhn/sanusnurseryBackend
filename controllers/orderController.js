@@ -227,7 +227,7 @@ const searchOrderByDate = async(req,res) => {
             return res.status(400).json({message: "Order date not found"});
         }
 
-        const orders = await knex.raw('select ord.*, ord.order_date::TEXT from orders ord where substring(order_date::TEXT,1,10) = ?',[searchDate]);
+        const orders = await knex.raw('select ord.*, ord.order_date::TEXT from orders ord inner join payment_detail pd on ord.order_id = pd.order_id where substring(ord.order_date::TEXT,1,10) = ?',[searchDate]);
 
         res.status(200).json({orders: orders.rows})
 
