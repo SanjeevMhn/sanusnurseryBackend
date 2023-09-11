@@ -46,7 +46,7 @@ const getProductDeliveredAndPaymentStatus = async(req,res) => {
                                             ord.order_id, 
                                             ord.order_number,
                                             ord.order_date,
-                                            ord.order_total,
+                                            pyd.total_amount as order_total,
                                             ord.order_status,
                                             pyd.payment_status
                                         from orders ord
@@ -73,7 +73,6 @@ const addOrder = async(req,res) => {
                 order_number: order_number,
                 user_id: user_id,
                 order_date: order_date,
-                order_total: order_total,
                 delivery_address: delivery_address,
                 user_name: user_name,
                 user_email: user_email,
@@ -114,7 +113,7 @@ const getAllOrders = async (req,res) => {
         const offset = (page - 1) * pageSize;
         const limit = pageSize;
 
-        const orders = await knex.raw(`select ord.*,ord.order_date::TEXT,pd.payment_status,pd.payment_type from orders ord inner join payment_detail pd on ord.order_id = pd.order_id limit ? offset ?`,[limit,offset]);
+        const orders = await knex.raw(`select ord.*,ord.order_date::TEXT,pd.total_amount as order_total,pd.payment_status,pd.payment_type from orders ord inner join payment_detail pd on ord.order_id = pd.order_id limit ? offset ?`,[limit,offset]);
         const ordersCount = await knex.raw(`select count(*) as row_count from (select ord.*,pd.payment_status,pd.payment_type from orders ord inner join payment_detail pd on ord.order_id = pd.order_id) as result`);
 
         res.status(200).json({
@@ -139,7 +138,7 @@ const getOrderById = async(req,res) => {
             return res.status(404).json({message: "Order id not found"});
         }
 
-        const order = await knex.raw(`select ord.*,ord.order_date::TEXT,pd.payment_status,pd.payment_type from orders ord inner join payment_detail pd on ord.order_id = pd.order_id where ord.order_id = ?`,orderId);
+        const order = await knex.raw(`select ord.*,ord.order_date::TEXT from orders ord inner join payment_detail pd on ord.order_id = pd.order_id where ord.order_id = ?`,orderId);
 
         res.status(200).json({
             order: order.rows[0]
@@ -187,9 +186,9 @@ const getPaymentDetail = async(req,res) => {
         }
         const paymentDetail = await knex.raw(`select 
                                             pd.payment_id,
-                                            pd.payment_date,
+                                            pd.payment_date::TEXT,
                                             pd.total_amount,
-                                            pc.payment_type,
+                                            pd.payment_type,
                                             pd.payment_status
                                         from payment_detail pd
                                         inner join payment_category pc on pd.payment_type = pc.payment_id
@@ -261,6 +260,61 @@ const searchOrderByUserName = async(req,res)=> {
 
 }
 
+const updateOrder = async(req,res) => {
+    try{
+        const orderId = req.params.order_id;
+        const orderUpdates = req.body;
+        const existOrder = await knex.select('order_id').from('orders').where('order_id',orderId);
+        if(!orderId || orderId === null){
+            return res.status(400).json({message: "Order id not found"});
+        }
+
+        if(Object.keys(orderUpdates).length == 0){
+            return res.status(400).json({message: "Update data not found"});
+        }
+
+        if(existOrder.length == 0){
+            return res.status(400).json({message: "Order not found"});
+        }
+
+        await knex('orders').where('order_id', orderId).update({...orderUpdates});
+
+        res.status(200).json({message: "Order updated successfully"})
+        
+    }catch(err){
+        console.log(err);
+        res.status(500).json({message: "An error occurred while upadating order data"});
+    }
+}
+
+const updateOrderPaymentDetail = async(req,res) => {
+    try{
+
+        const orderId = req.params.order_id;
+        const paymentUpdates = req.body;
+        const existPaymentDetails = await knex.select('payment_id').from('payment_detail').where('order_id',orderId);
+
+        if(!orderId || orderId == null){
+            return res.status(400).json({message: "Order id not found"});
+        }
+
+        if(Object.keys(paymentUpdates).length === 0){
+            return res.status(400).json({message: "Payment updates not found"});
+        }
+
+        if(existPaymentDetails.length === 0){
+            return res.status(400).json({message: "Payment detail for the order not found"});
+        }
+
+        await knex('payment_detail').where('order_id',orderId).update({...paymentUpdates});
+        res.status(200).json({message: "Order payment detail upated successfully"});
+
+    }catch(err) {
+        console.log(err);
+        res.status(500).json({message: "An error occured while updating order payment detail"});
+    }
+}
+
 
 module.exports = {
     countOrders,
@@ -273,5 +327,7 @@ module.exports = {
     getPaymentDetail,
     getPaymentTypeFromId,
     searchOrderByDate,
-    searchOrderByUserName
+    searchOrderByUserName,
+    updateOrder,
+    updateOrderPaymentDetail
 }

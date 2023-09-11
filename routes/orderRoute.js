@@ -25,4 +25,7 @@ router.route('/orderDeliveryPaymentStatus').get(verifyJWT,verifyUserRoles(Role.A
 router.route('/search/date/:order_date').get(verifyJWT, verifyUserRoles(Role.Admin),orderController.searchOrderByDate);
 router.route('/search/user_name').get(verifyJWT, verifyUserRoles(Role.Admin),orderController.searchOrderByUserName);
 
+router.route('/id/:order_id').patch(verifyJWT,verifyUserRoles(Role.Admin),orderController.updateOrder);
+router.route('/id/payment_detail/:order_id').patch(verifyJWT,verifyUserRoles(Role.Admin),orderController.updateOrderPaymentDetail)
+
 module.exports = router;
