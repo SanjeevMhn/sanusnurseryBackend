@@ -143,11 +143,12 @@ const getProductById = async (req, res) => {
         const product = await knex.raw(`select 
                                             pd.prod_id,
                                             pd.prod_name,
-                                            pd.prod_category,
+                                            pc.prod_cat_name as prod_category,
                                             pd.prod_price,
                                             pim.image_url as prod_img, 
                                             pd."prod_inStock" 
-                                        from products pd 
+                                        from products pd
+                                        inner join product_categories pc on pd.prod_category = pc.prod_cat_id 
                                         inner join product_image_details pim on pd.prod_id = pim.product_id 
                                         where pd.prod_id = ?`, [req.params.id]);
         res.status(200).json({ product: product.rows });
