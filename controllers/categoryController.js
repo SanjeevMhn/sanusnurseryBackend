@@ -29,7 +29,8 @@ const getAllCategories = async (req, res) => {
 const searchCategoryByName = async (req, res) => {
 	try {
 
-		const categoryName = req.query.category_name;
+		let categoryName = req.query.category_name;
+		categoryName = categoryName.toLowerCase();
 		const getCatWithProdNum = await knex.raw(`select 
 													pc.prod_cat_id as cat_id,
 													pc.prod_cat_name as category_name, 
@@ -66,7 +67,8 @@ const getCategoryById = async (req, res) => {
 
 const addCategory = async (req, res) => {
 	try {
-		const { category_name } = req.body;
+		let { category_name } = req.body;
+		category_name = category_name.toLowerCase()
 
 		if (category_name === null || category_name === '') {
 			return res.status(400).json({ message: "Please enter proper category name" });
@@ -110,7 +112,8 @@ const updateCategory = async (req, res) => {
 	try {
 
 		const cat_id = req.params.id;
-		const { category_name } = req.body;
+		let { category_name } = req.body;
+		category_name = category_name.toLowerCase();
 		const category = await knex.select('*').from('product_categories').where('prod_cat_id', cat_id);
 
 		if (category.length == 0) {
