@@ -9,6 +9,9 @@ router.route('/')
 	.get(verifyJWT,verifyRoles(Role.Admin),categoryController.getAllCategories)
 	.post(verifyJWT,verifyRoles(Role.Admin),categoryController.addCategory);
 
+router.route('/name')
+	.get(verifyJWT, verifyRoles(Role.Admin),categoryController.searchCategoryByName)
+
 router.route('/id/:id')
 	.delete(verifyJWT,verifyRoles(Role.Admin),categoryController.deleteCategory)
 	.patch(verifyJWT,verifyRoles(Role.Admin),categoryController.updateCategory)

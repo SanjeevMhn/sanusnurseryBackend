@@ -26,6 +26,29 @@ const getAllCategories = async (req, res) => {
 	}
 }
 
+const searchCategoryByName = async (req, res) => {
+	try {
+
+		const categoryName = req.query.category_name;
+		const getCatWithProdNum = await knex.raw(`select 
+													pc.prod_cat_id as cat_id,
+													pc.prod_cat_name as category_name, 
+													count(pd.*) as product_count 
+													from product_categories pc 
+													left join products pd on pc.prod_cat_id = pd.prod_category 
+													where pc.prod_cat_name ilike ?
+													group by pc.prod_cat_id, pc.prod_cat_name, pd.prod_category 
+													order by pc.prod_cat_name asc` , [`%${categoryName}%`]);
+		// const totalCount = getCatWithProdNum[0].count
+		res.status(200).json({ 
+			categories: getCatWithProdNum.rows 
+		});	
+	} catch (err) {
+		console.log(err);
+		res.status(500).json({ message: "An error occured while getting product category data" })
+	}
+}
+
 const getCategoryById = async (req, res) => {
 
 	try {
@@ -103,7 +126,7 @@ const updateCategory = async (req, res) => {
 		// 	prod_cat_name: category_name
 		// }
 
-		await knex('product_categories').where('prod_cat_id', cat_id).update({prod_cat_name: category_name});
+		await knex('product_categories').where('prod_cat_id', cat_id).update({ prod_cat_name: category_name });
 
 		res.status(201).json({ message: "The product category has been successfully updated" });
 
@@ -118,5 +141,6 @@ module.exports = {
 	getCategoryById,
 	addCategory,
 	deleteCategory,
-	updateCategory
+	updateCategory,
+	searchCategoryByName
 }
