@@ -166,11 +166,30 @@ const getAllOrders = async (req, res) => {
         const offset = (page - 1) * pageSize;
         const limit = pageSize;
 
-        const orders = await knex.raw(`select ord.*,ord.order_date::TEXT,pd.total_amount as order_total,pd.payment_status,pd.payment_type from orders ord inner join payment_detail pd on ord.order_id = pd.order_id limit ? offset ?`, [limit, offset]);
-        const ordersCount = await knex.raw(`select count(*) as row_count from (select ord.*,pd.payment_status,pd.payment_type from orders ord inner join payment_detail pd on ord.order_id = pd.order_id) as result`);
+        const orders = await knex.raw(`select 
+                                            ord.*,
+                                            coalesce(ord.user_id::TEXT, 'guest') as user_type,
+                                            ord.order_date::TEXT,
+                                            pd.total_amount as order_total,
+                                            pd.payment_status,
+                                            pc.payment_type 
+                                        from orders ord 
+                                        inner join payment_detail pd on ord.order_id = pd.order_id 
+                                        inner join payment_category pc on pd.payment_type = pc.payment_id
+                                        limit ? offset ?`, [limit, offset]);
+        const ordersCount = await knex.raw(`select 
+                                                count(*) as row_count 
+                                            from (select 
+                                                    ord.*,
+                                                    pd.payment_status,
+                                                    pc.payment_type from orders ord 
+                                                    inner join payment_detail pd on ord.order_id = pd.order_id
+                                                    inner join payment_category pc on pd.payment_type = pc.payment_id
+                                                    ) as result`);
 
         res.status(200).json({
             currentPage: page,
+            pageSize: pageSize,
             totalPages: Math.ceil(ordersCount.rows[0].row_count / pageSize),
             totalItem: parseInt(ordersCount.rows[0].row_count),
             orders: orders.rows
