@@ -117,7 +117,17 @@ const addOrder = async (req, res) => {
     try {
         await knex.transaction(async trx => {
 
-            const { order_number, user_id, order_date, order_total, delivery_address, user_name, user_email, user_contact, payment_type, order_products } = req.body;
+            const { 
+                order_number, 
+                user_id, 
+                order_date, order_total, 
+                delivery_address, 
+                user_name, user_email, 
+                user_contact, 
+                payment_type, 
+                order_products 
+            } = req.body;
+
             if (!req.body) {
                 return res.status(400).json({ message: "Invalid order data" });
             }
@@ -387,6 +397,19 @@ const updateOrderPaymentDetail = async (req, res) => {
     }
 }
 
+const getPaymentTypes = async (req, res) => {
+
+    try {
+        const paymentTypes = await knex.select('*').from('payment_category');
+        return res.status(200).json({
+            paymentTypes: paymentTypes
+        })
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ message: 'An error occured while getting payment category data' })
+    }
+}
+
 
 module.exports = {
     countOrders,
@@ -402,5 +425,6 @@ module.exports = {
     searchOrderByUserName,
     updateOrder,
     updateOrderPaymentDetail,
-    searchMostOrderedProducts
+    searchMostOrderedProducts,
+    getPaymentTypes
 }

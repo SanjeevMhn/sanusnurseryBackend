@@ -28,4 +28,6 @@ router.route('/search/user_name').get(verifyJWT, verifyUserRoles(Role.Admin),ord
 router.route('/id/:order_id').patch(verifyJWT,verifyUserRoles(Role.Admin),orderController.updateOrder);
 router.route('/id/payment_detail/:order_id').patch(verifyJWT,verifyUserRoles(Role.Admin),orderController.updateOrderPaymentDetail)
 
+router.route('/paymentTypes').get(orderController.getPaymentTypes);
+
 module.exports = router;
