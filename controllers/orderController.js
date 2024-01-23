@@ -120,7 +120,8 @@ const addOrder = async (req, res) => {
             const { 
                 order_number, 
                 user_id, 
-                order_date, order_total, 
+                order_date, 
+                order_total, 
                 delivery_address, 
                 user_name, user_email, 
                 user_contact, 
@@ -146,7 +147,7 @@ const addOrder = async (req, res) => {
             order_products.map(async (op) => {
                 await trx('order_details').insert({
                     order_id: lastInsertId[0].order_id,
-                    product_id: op.prod_id,
+                    product_id: op.id,
                     product_quantity: op.quantity,
                 })
             });
