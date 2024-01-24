@@ -213,6 +213,45 @@ const getAllOrders = async (req, res) => {
     }
 }
 
+const getOrdersByOrderStatus = async (req, res) => {
+    try {
+
+        const status = req.params.status;
+        const page = parseInt(req.query.page) || 1;
+        const pageSize = parseInt(req.query.pageSize) || 5;
+        const offset = (page - 1) * pageSize;
+        const limit = pageSize;
+
+        const orderStatus = await knex.raw(`select
+                                                ord.*,
+                                                coalesce(ord.user_id::TEXT, 'guest') as user_type,
+                                                ord.order_date::TEXT,
+                                                pd.total_amount as order_total,
+                                                pd.payment_status,
+                                                pc.payment_type 
+                                            from orders ord
+                                            inner join payment_detail pd on ord.order_id = pd.order_id
+                                            inner join payment_category pc on pd.payment_type = pc.payment_id
+                                            where ord.order_status = ? limit ? offset ?`, [status, limit, offset]);
+
+        const orderStatusCount = await knex.raw(`select count(*) from (select ord.* from orders ord
+                                                                        inner join payment_detail pd on ord.order_id = pd.order_id
+                                                                        inner join payment_category pc on pd.payment_type = pc.payment_id
+                                                                        where ord.order_status = ? and pd.payment_status <> 'CANCELLED') as orderStatus`, [status]);
+
+        res.status(200).json({
+            currentPage: page,
+            totalPages: Math.ceil(orderStatusCount.rows[0].count / pageSize) == 0 ? 1 : Math.ceil(orderStatusCount.rows[0].count / pageSize),
+            totalItems: orderStatusCount.rows[0].count,
+            pageSize: pageSize,
+            orders: orderStatus.rows
+        })
+
+    } catch (e) {
+        console.error(e)
+    }
+}
+
 const getOrderById = async (req, res) => {
     try {
 
@@ -427,5 +466,6 @@ module.exports = {
     updateOrder,
     updateOrderPaymentDetail,
     searchMostOrderedProducts,
-    getPaymentTypes
+    getPaymentTypes,
+    getOrdersByOrderStatus
 }
