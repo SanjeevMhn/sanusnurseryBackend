@@ -260,10 +260,34 @@ const getOrderById = async (req, res) => {
             return res.status(404).json({ message: "Order id not found" });
         }
 
-        const order = await knex.raw(`select ord.*,ord.order_date::TEXT from orders ord inner join payment_detail pd on ord.order_id = pd.order_id where ord.order_id = ?`, orderId);
+        const order = await knex.raw(`select 
+                                        ord.*,
+                                        ord.order_date::TEXT,
+                                        coalesce(user_id::TEXT,'guest') as user_type,
+                                        pd.total_amount as order_total,
+                                        pd.payment_status,
+                                        pc.payment_type
+                                    from orders ord 
+                                    inner join payment_detail pd on ord.order_id = pd.order_id 
+                                    inner join payment_category pc on pd.order_id = ord.order_id
+                                    where ord.order_id = ?`, [orderId]);
 
+        const orderItems = await knex.raw(`select 
+                                                pd.prod_id,
+                                                pd.prod_name,
+                                                pim.image_url as prod_img,
+                                                pc.prod_cat_name as prod_category, 
+                                                cast(pd.prod_price as integer), 
+                                                od.product_quantity as prod_quantity,
+                                                pd."prod_inStock"
+                                            from order_details od 
+                                            inner join products pd on od.product_id = pd.prod_id 
+                                            inner join product_categories pc on pd.prod_category = pc.prod_cat_id 
+                                            inner join product_image_details pim on od.product_id = pim.product_id 
+                                            where od.order_id = ?`, [orderId])
         res.status(200).json({
-            order: order.rows[0]
+            order: order.rows[0],
+            orderItems: orderItems.rows
         });
 
     } catch (err) {
