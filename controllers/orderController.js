@@ -159,6 +159,17 @@ const addOrder = async (req, res) => {
                 total_amount: order_total
             });
 
+            let adminId = await trx.raw(`select 
+                                            usr.user_id
+                                        from users usr 
+                                        inner join roles rl on usr.role_id = rl.role_id
+                                        where rl.role_name = 'admin'`);
+
+            await trx('notifications').insert({
+                sender_id: lastInsertId[0].order_id,
+                receiver_id: adminId.rows[0].user_id,
+                notification_desc: 'New order placed',
+            });
 
             res.status(201).json({ message: "Order has been placed" });
 

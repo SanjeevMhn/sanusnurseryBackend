@@ -20,8 +20,7 @@ const countAll = async (req, res) => {
         });
     } catch (err) {
         console.log(err);
-        res
-            .status(500)
+        res.status(500)
             .json({
                 message: "An error occured while getting total products, category and orders count",
             });
