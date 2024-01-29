@@ -12,7 +12,7 @@ const countAll = async (req, res) => {
                                             count(ord.*) 
                                         from orders ord 
                                         inner join payment_detail pyd on ord.order_id = pyd.order_id 
-                                        where order_number is not null`);
+                                        where ord.order_number is not null and (ord.order_status = 'PENDING' and pyd.payment_status <> 'CANCELLED' )`);
         res.status(200).json({ 
             productCount: prodCount.rows[0].count,
             categoryCount: prodCatCount.rows[0].count,

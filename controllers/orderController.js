@@ -198,6 +198,7 @@ const getAllOrders = async (req, res) => {
                                         from orders ord 
                                         inner join payment_detail pd on ord.order_id = pd.order_id 
                                         inner join payment_category pc on pd.payment_type = pc.payment_id
+                                        where ord.order_status = 'PENDING' and pd.payment_status <> 'CANCELLED'
                                         limit ? offset ?`, [limit, offset]);
         const ordersCount = await knex.raw(`select 
                                                 count(*) as row_count 
@@ -207,7 +208,8 @@ const getAllOrders = async (req, res) => {
                                                     pc.payment_type from orders ord 
                                                     inner join payment_detail pd on ord.order_id = pd.order_id
                                                     inner join payment_category pc on pd.payment_type = pc.payment_id
-                                                    ) as result`);
+                                                    where ord.order_status = 'PENDING' and pd.payment_status <> 'CANCELLED'
+                                                 ) as result`);
 
         res.status(200).json({
             currentPage: page,
