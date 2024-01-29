@@ -417,10 +417,29 @@ const searchOrderByUserName = async (req, res) => {
 
 }
 
+const separateOrderPaymentUpdates = (update) => {
+    const paymentUpdate = {};
+    const orderUpdate = {};
+
+    for(const key in update) {
+        if(update.hasOwnProperty(key)){
+            if(key === 'payment_type' || key === 'payment_status'){
+                paymentUpdate[key] = update[key];
+            }else{
+                orderUpdate[key] = update[key];
+            }
+        }
+    }
+
+    return { paymentUpdate, orderUpdate };
+}
+
 const updateOrder = async (req, res) => {
     try {
         const orderId = req.params.order_id;
         const orderUpdates = req.body;
+
+
         const existOrder = await knex.select('order_id').from('orders').where('order_id', orderId);
         if (!orderId || orderId === null) {
             return res.status(400).json({ message: "Order id not found" });
@@ -434,7 +453,15 @@ const updateOrder = async (req, res) => {
             return res.status(400).json({ message: "Order not found" });
         }
 
-        await knex('orders').where('order_id', orderId).update({ ...orderUpdates });
+        const { paymentUpdate,orderUpdate } = separateOrderPaymentUpdates(orderUpdates);
+
+        if(Object.keys(orderUpdate).length !== 0){
+            await knex('orders').where('order_id', orderId).update({ ...orderUpdate });
+        }
+
+        if(Object.keys(paymentUpdate).length !== 0){
+            await knex('payment_detail').where('order_id', orderId).update({ ...paymentUpdate });
+        }
 
         res.status(200).json({ message: "Order updated successfully" })
         
