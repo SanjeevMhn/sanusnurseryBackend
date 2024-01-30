@@ -168,6 +168,7 @@ const addOrder = async (req, res) => {
             await trx('notifications').insert({
                 sender_id: lastInsertId[0].order_id,
                 receiver_id: adminId.rows[0].user_id,
+                notification_type: "Order Added",
                 notification_desc: 'New order placed',
             });
 

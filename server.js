@@ -1,6 +1,8 @@
 const express = require('express');
+const http = require('http');
 require('dotenv').config();
 const app = express();
+const server = http.createServer(app);
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
@@ -31,8 +33,9 @@ app.use('/api/v1/orders', require('./routes/orderRoute'));
 app.use('/api/v1/categories', require('./routes/categoryRoute'));
 app.use('/api/v1/auth', require('./routes/authRoute'));
 app.use('/api/v1/refresh', require('./routes/refreshRoute'));
+app.use('/api/v1/notifications', require('./routes/notificationRoute'));
 
-app.listen(port, (req, res) => {
+server.listen(port, (req, res) => {
   console.log(`Listening to port ${port}`);
 })
 
