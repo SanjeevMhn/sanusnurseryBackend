@@ -6,6 +6,8 @@ const server = http.createServer(app);
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const { Server } = require('socket.io');
+
 
 const port = process.env.PORT;
 
@@ -22,6 +24,26 @@ const corsOptions = {
 }
 
 app.use(cors(corsOptions));
+
+const io = new Server(server,{
+  cors: corsOptions
+})
+
+const getIOInstance = () => {
+  return io;
+}
+
+module.exports = {
+  getIOInstance
+}
+
+io.on('connection',(socket) => {
+  console.log('Connected');
+
+  socket.on('disconnect', () => {
+    console.log('Disconnected')
+  })
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

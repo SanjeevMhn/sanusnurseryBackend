@@ -1,5 +1,6 @@
 const knex = require('../config/db/knex');
 const cloudinary = require('../config/cloudinary/cloudinary');
+const { getIOInstance } = require('../server');
 require('dotenv').config();
 
 
@@ -171,6 +172,8 @@ const addOrder = async (req, res) => {
                 notification_type: "Order Added",
                 notification_desc: 'New order placed',
             });
+
+            getIOInstance().emit('orderAdded',{message: 'New Order Placed'});
 
             res.status(201).json({ message: "Order has been placed" });
 
@@ -515,6 +518,28 @@ const getPaymentTypes = async (req, res) => {
     }
 }
 
+const deleteOrder = async (req,res) =>{
+     try{
+        const orderId = req.params.order_id;
+        if(orderId === null || orderId == '' || !orderId){
+            return res.status(400).json({message: 'Order id not found'});
+        }
+
+        const orderExists = await knex.select('*').from('orders').where('order_id',orderId);
+
+        if(!orderExists || orderExists == null){
+            return res.status(400).json({message: 'Order not found'});
+        }
+
+        const orderDel = await knex('orders').where('order_id',orderId).del();
+
+        res.status(200).json({message: 'Order deleted successfully'});       
+     }catch(e){
+        console.error(e);
+        res.status(500).json({message: 'An error occured while deleting order'})
+     }
+}
+
 
 module.exports = {
     countOrders,
@@ -532,5 +557,6 @@ module.exports = {
     updateOrderPaymentDetail,
     searchMostOrderedProducts,
     getPaymentTypes,
-    getOrdersByOrderStatus
+    getOrdersByOrderStatus,
+    deleteOrder
 }
