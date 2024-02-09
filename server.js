@@ -1,6 +1,6 @@
 const express = require('express');
 const http = require('http');
-require('dotenv').config();
+const dotenv = require('dotenv');
 const app = express();
 const server = http.createServer(app);
 const bodyParser = require('body-parser');
@@ -8,8 +8,18 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const { Server } = require('socket.io');
 
+const environment = process.env.NODE_ENV || 'production';
 
-const port = process.env.PORT;
+const result = dotenv.config({
+  path: `.env.${environment}`
+})
+
+if(result.error){
+  console.error(`Error loading .env.${environment} file: ${result.error.message}`);
+  process.exit(1);
+}
+
+const port = process.env.PORT || 8080;
 
 const allowedOrigins = ["http://localhost:4200", "http://localhost:3000", "https://www.sanusnursery.com.np"];
 const corsOptions = {
