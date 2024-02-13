@@ -241,7 +241,10 @@ const getOrdersByOrderStatus = async (req, res) => {
 
         const orderStatus = await knex.raw(`select
                                                 ord.*,
-                                                coalesce(ord.user_id::TEXT, 'guest') as user_type,
+                                                case
+                                                    when ord.user_id is null then 'guest'
+                                                    else 'user'
+                                                end as user_type, 
                                                 ord.order_date::TEXT,
                                                 pd.total_amount as order_total,
                                                 pd.payment_status,
@@ -280,7 +283,10 @@ const getOrderById = async (req, res) => {
         const order = await knex.raw(`select 
                                         ord.*,
                                         ord.order_date::TEXT,
-                                        coalesce(user_id::TEXT,'guest') as user_type,
+                                        case
+                                            when ord.user_id is null then 'guest'
+                                            else 'user' 
+                                        end as user_type,
                                         pd.total_amount as order_total,
                                         pd.payment_status,
                                         pc.payment_type
