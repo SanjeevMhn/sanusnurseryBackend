@@ -143,9 +143,35 @@ const getUserData = async (req, res) => {
     }
 }
 
+const getUserByEmail = async(req,res) => {
+    try{
+        const userEmail = req.body.user_email;
+        if(!userEmail || userEmail == null || userEmail == ''){
+            return res.status(400).json({ message: 'No email found, Please provide an email' });
+        }
+        //const emailExists = await knex.select('user_id','user_name','user_email','role_id').from('users').where('user_email',userEmail);
+        const emailExists = await knex.raw(`select
+                                                usr.user_id,
+                                                usr.user_name,
+                                                usr.user_email,
+                                                rl.role_name
+                                            from users usr
+                                            inner join roles rl 
+                                            on usr.role_id = rl.role_id`);
+        if(!emailExists || emailExists.rows.length == 0){
+            return res.status(400).json({ message: 'User email doesnot exist!' });
+        }
+        console.log(emailExists.rows[0]);
+        res.status(200).json({user: emailExists.rows[0]});
+    }catch(err){
+        console.error(err);
+    }
+}
+ 
 module.exports = {
     handleLogin,
     handleUserRegistration,
     handleUserLogout,
-    getUserData
+    getUserData,
+    getUserByEmail
 }

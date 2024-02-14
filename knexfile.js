@@ -4,10 +4,10 @@
  * @type { Object.<string, import("knex").Knex.Config> }
  */
 
-require('dotenv').config();
+const environment = process.env.NODE_ENV || 'production';
+require('dotenv').config({path: `.env.${environment}`});
 
 const { CLIENT, PORT, DATABASE, PG_USER, PASSWORD, HOST, PG_PORT } = process.env;
-
 
 module.exports = {
 

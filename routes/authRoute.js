@@ -8,5 +8,6 @@ router.route('/').post(authController.handleLogin);
 router.route('/register').post(authController.handleUserRegistration)
 router.route('/logout').post(authController.handleUserLogout);
 router.route('/me').get(verifyJWT,verifyUserRoles(Role.Admin,Role.User),authController.getUserData);
+router.route('/email').post(authController.getUserByEmail);
 
 module.exports = router;
