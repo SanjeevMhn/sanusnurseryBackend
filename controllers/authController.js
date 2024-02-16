@@ -167,11 +167,24 @@ const getUserByEmail = async(req,res) => {
         console.error(err);
     }
 }
- 
+
+const handleThridPartyRegistration = async(req,res) => {
+    try{
+        const {user_name, user_email, user_img, provider} = req.body; 
+        console.log(user_name,user_email,user_img,provider);
+        //TODO: add provider and user_img column to the users table     
+        
+    }catch(err){
+        console.error(err);
+        res.status(500).json({message: 'An error occured while registering from third party'})
+    }
+}
+  
 module.exports = {
     handleLogin,
     handleUserRegistration,
     handleUserLogout,
     getUserData,
-    getUserByEmail
+    getUserByEmail,
+    handleThridPartyRegistration
 }
