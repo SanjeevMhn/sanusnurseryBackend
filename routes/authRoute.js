@@ -9,5 +9,6 @@ router.route('/register').post(authController.handleUserRegistration)
 router.route('/logout').post(authController.handleUserLogout);
 router.route('/me').get(verifyJWT,verifyUserRoles(Role.Admin,Role.User),authController.getUserData);
 router.route('/email').post(authController.getUserByEmail);
+router.route('/google-auth').post(authController.googleAuth);
 
 module.exports = router;

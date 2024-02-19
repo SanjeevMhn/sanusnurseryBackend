@@ -7,6 +7,8 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const { Server } = require('socket.io');
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client();
 
 const environment = process.env.NODE_ENV || 'production';
 
@@ -43,8 +45,13 @@ const getIOInstance = () => {
   return io;
 }
 
+const getGoogleAuthClient = () => {
+  return client;
+}
+
 module.exports = {
-  getIOInstance
+  getIOInstance,
+  getGoogleAuthClient
 }
 
 io.on('connection',(socket) => {
