@@ -19,6 +19,11 @@ const handleLogin = async (req, res) => {
       return;
     }
 
+    if(foundUser[0].authProvider !== 'self'){
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
     const decrptedPassword = await (bcrypt.compare(user_password, foundUser[0].user_password));
     if (!decrptedPassword) {
       res.status(403).json({ message: "Invalid Password" });
@@ -57,6 +62,8 @@ const handleLogin = async (req, res) => {
 
     res.cookie('jwt', refreshToken, {
       httpOnly: true,
+      secure: true,
+      sameSite: 'Strict',
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -136,7 +143,16 @@ const handleUserLogout = async (req, res) => {
 
 const getUserData = async (req, res) => {
   try {
-    const userData = await knex.raw('select users.user_id,users.user_name,users.user_email,roles.role_name as user_role from users join roles on users.role_id = roles.role_id where users.user_id = ?', [req.user_id]);
+    const userData = await knex.raw(`select 
+                                        users.user_id,
+                                        users.user_name,
+                                        users.user_email,
+                                        users.user_img,
+                                        roles.role_name as user_role, 
+                                        users."authProvider" 
+                                      from users 
+                                      join roles on users.role_id = roles.role_id 
+                                      where users.user_id = ?`, [req.user_id]);
     res.status(200).json({ user: userData.rows });
   } catch (err) {
     console.error(err);
@@ -166,18 +182,6 @@ const getUserByEmail = async (req, res) => {
     res.status(200).json({ user: emailExists.rows[0] });
   } catch (err) {
     console.error(err);
-  }
-}
-
-const handleThridPartyRegistration = async (req, res) => {
-  try {
-    const { user_name, user_email, user_img, provider } = req.body;
-    console.log(user_name, user_email, user_img, provider);
-    //TODO: add provider and user_img column to the users table     
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'An error occured while registering from third party' })
   }
 }
 
@@ -211,18 +215,18 @@ const googleAuth = async (req, res) => {
           authProvider: 'google'
         });
 
-      const newUser = await knex.select('*').from('users').where('user_id',userId);
-      generateAccessRefreshToken(newUser[0]);
-    }else{
-      generateAccessRefreshToken(emailExists.row[0])
+      const newUser = await knex.select('*').from('users').where('user_id', userId);
+      return generateAccessToken(newUser[0], res);
+    } else {
+      return generateAccessToken(emailExists.rows[0], res)
     }
-
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'An error occured while authenticating user from google' })
   }
 }
 
-const generateAccessRefreshToken = async (user) => {
+const generateAccessToken = async (user, res) => {
 
   const accessToken = jwt.sign(
     {
@@ -232,33 +236,8 @@ const generateAccessRefreshToken = async (user) => {
       }
     },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: '5m' }
-  );
-
-  const refreshToken = jwt.sign(
-    {
-      "user_info": {
-        "user_id": user.user_id,
-        "role_id": user.role_id
-      }
-    },
-    process.env.REFRESH_TOKEN_SECRET,
     { expiresIn: '1d' }
-  )
-
-  const currentDate = new Date();
-  const tokenExpire = new Date(currentDate.getTime() + 24 * 60 * 60 * 1000);
-  await knex('user_refresh_tokens').insert([{
-    user_id: user.user_id,
-    token: refreshToken,
-    expires_at: tokenExpire
-  }]);
-
-  res.cookie('jwt', refreshToken, {
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000,
-  });
-
+  );
   res.status(200).json({
     message: 'User logged in successfully',
     accessToken: accessToken
