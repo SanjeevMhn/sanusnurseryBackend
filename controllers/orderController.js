@@ -194,8 +194,11 @@ const getAllOrders = async (req, res) => {
 
         const orders = await knex.raw(`select 
                                             ord.*,
-                                            coalesce(ord.user_id::TEXT, 'guest') as user_type,
                                             ord.order_date::TEXT,
+                                            case
+                                                when ord.user_id is null then 'guest'
+                                                else 'user'
+                                            end as user_type
                                             pd.total_amount as order_total,
                                             pd.payment_status,
                                             pc.payment_type 
@@ -252,7 +255,7 @@ const getOrdersByOrderStatus = async (req, res) => {
                                             from orders ord
                                             inner join payment_detail pd on ord.order_id = pd.order_id
                                             inner join payment_category pc on pd.payment_type = pc.payment_id
-                                            where ord.order_status = ? limit ? offset ?`, [status, limit, offset]);
+                                            where ord.order_status = ? order by ord.created_at desc limit ? offset ?`, [status, limit, offset]);
 
         const orderStatusCount = await knex.raw(`select count(*) from (select ord.* from orders ord
                                                                         inner join payment_detail pd on ord.order_id = pd.order_id

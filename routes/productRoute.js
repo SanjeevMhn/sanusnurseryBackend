@@ -22,6 +22,4 @@ router.route('/categories').get(productController.getProductCategories);
 
 router.route('/name').get(productController.searchProductsByName);
 
-router.route('/count').get(verifyJWT,verifyRoles(Role.Admin),productController.countAll);
-
 module.exports = router;

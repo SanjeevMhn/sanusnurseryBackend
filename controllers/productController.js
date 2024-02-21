@@ -2,31 +2,6 @@ const knex = require("../config/db/knex");
 const cloudinary = require("../config/cloudinary/cloudinary");
 require("dotenv").config();
 
-const countAll = async (req, res) => {
-    try {
-        const prodCount = await knex.raw("select count(*) from products");
-        const prodCatCount = await knex.raw(
-            "select count(*) from product_categories",
-        );
-        const orderCount = await knex.raw(`select 
-                                            count(ord.*) 
-                                        from orders ord 
-                                        inner join payment_detail pyd on ord.order_id = pyd.order_id 
-                                        where ord.order_number is not null and (ord.order_status = 'PENDING' and pyd.payment_status <> 'CANCELLED' )`);
-        res.status(200).json({ 
-            productCount: prodCount.rows[0].count,
-            categoryCount: prodCatCount.rows[0].count,
-            ordersCount: orderCount.rows[0].count
-        });
-    } catch (err) {
-        console.log(err);
-        res.status(500)
-            .json({
-                message: "An error occured while getting total products, category and orders count",
-            });
-    }
-};
-
 const getAllProducts = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -379,7 +354,6 @@ const deleteProduct = async (req, res) => {
 };
 
 module.exports = {
-    countAll,
     getAllProducts,
     getProductsByCategory,
     getProductById,
