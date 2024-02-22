@@ -74,6 +74,7 @@ app.use('/api/v1/auth', require('./routes/authRoute'));
 app.use('/api/v1/refresh', require('./routes/refreshRoute'));
 app.use('/api/v1/notifications', require('./routes/notificationRoute'));
 app.use('/api/v1/admin',require('./routes/adminRoute'));
+app.use('/api/v1/cart',require('./routes/cartRoute'));
 
 server.listen(port, (req, res) => {
   console.log(`Listening to port ${port}`);
