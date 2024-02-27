@@ -4,7 +4,7 @@ const cartController = require('../controllers/cartController');
 
 
 router.route('/:id')
-	.get(cartController.getCartData);
+	.get(verifyJWT,cartController.getCartData);
 
 router.route('/')
 	.post(verifyJWT,cartController.addCartData)
