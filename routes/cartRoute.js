@@ -9,4 +9,7 @@ router.route('/:id')
 router.route('/')
 	.post(verifyJWT,cartController.addCartData)
 
+router.route('/delete')
+	.post(verifyJWT,cartController.removeCartData)
+
 module.exports = router;
