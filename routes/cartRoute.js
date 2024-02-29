@@ -8,6 +8,7 @@ router.route('/:id')
 
 router.route('/')
 	.post(verifyJWT,cartController.addCartData)
+	.patch(verifyJWT,cartController.updateCartDataQuantity)
 
 router.route('/delete')
 	.post(verifyJWT,cartController.removeCartData)

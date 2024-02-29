@@ -152,8 +152,51 @@ const removeCartData = async (req, res) => {
 	}
 }
 
+const updateCartDataQuantity = async(req,res) => {
+	try{
+		const { user_id, cart_item } = req.body;
+		const userId = parseInt(user_id);
+
+		if(!userId || userId == null || userId == ''){
+			return res.status(400).json({message: 'User details not provided'});
+		}	
+
+		if(Object.keys(cart_item).length == 0 || !cart_item){
+			return res.status(400).json({message: "Item details not provided"});
+		}
+
+		const userCartExists = await knex.select('*').from('cart').where('user_id', user_id);
+		if(userCartExists.length == 0){
+			res.status(400).json({message: 'User does not have a cart'})
+		}
+
+		const itemExists = await knex
+												.select('*')
+												.from('cart_detail')
+												.where('cart_id',userCartExists[0].cart_id) 
+												.andWhere('product_id', cart_item.id)
+
+		if(itemExists.length == 0){
+			res.status(400).json({message: 'Item not found in user cart'});
+		}
+
+		await knex('cart_detail'
+			.where('cart_id',userCartExists.cart_id)
+			.andWhere('product_id',cart_item.id)
+			.update(cart_item));
+
+		res.status(200).json({message: 'Item has been updated successfully'});
+
+		
+		
+	}catch(err){
+		console.error(err)
+	}
+}
+
 module.exports = {
 	getCartData,
 	addCartData,
-	removeCartData
+	removeCartData,
+	updateCartDataQuantity
 }
