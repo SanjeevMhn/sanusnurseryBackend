@@ -61,7 +61,6 @@ const addCartData = async (req, res) => {
 				product_quantity: cart_item.quantity
 			})
 
-			console.log(cartDetailId[0].cart_detail_id);
 
 			const cartDetail = await knex.raw(`select 
 												pd.prod_id as id,
@@ -180,10 +179,10 @@ const updateCartDataQuantity = async(req,res) => {
 			res.status(400).json({message: 'Item not found in user cart'});
 		}
 
-		await knex('cart_detail'
-			.where('cart_id',userCartExists.cart_id)
+		await knex('cart_detail')
+			.where('cart_id',userCartExists[0].cart_id)
 			.andWhere('product_id',cart_item.id)
-			.update(cart_item));
+			.update({product_quantity: cart_item.quantity});
 
 		res.status(200).json({message: 'Item has been updated successfully'});
 
