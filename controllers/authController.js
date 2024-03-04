@@ -149,7 +149,9 @@ const getUserData = async (req, res) => {
                                         users.user_email,
                                         users.user_img,
                                         roles.role_name as user_role, 
-                                        users."authProvider" 
+                                        users."authProvider",
+                                        users.user_contact,
+                                        users.user_address 
                                       from users 
                                       join roles on users.role_id = roles.role_id 
                                       where users.user_id = ?`, [req.user_id]);
