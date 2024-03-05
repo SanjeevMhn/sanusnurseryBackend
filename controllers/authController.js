@@ -200,14 +200,9 @@ const googleAuth = async (req, res) => {
 
     const { email, name, picture } = ticket.getPayload();
 
-    const emailExists = await knex.raw(`select
-                                          usr.user_id,
-                                          usr.user_name,
-                                          usr.user_email,
-                                          usr.role_id 
-                                      from users usr
-                                      where usr.user_email = ?`, [email]);
-    if (!emailExists || emailExists.rows.length == 0) {
+    const emailExists = await knex.select('*').from('users').where('user_email',email) 
+    
+    if (!emailExists || emailExists.length == 0) {
       let userId = await knex("users")
         .returning('user_id')
         .insert({
@@ -217,10 +212,10 @@ const googleAuth = async (req, res) => {
           authProvider: 'google'
         });
 
-      const newUser = await knex.select('*').from('users').where('user_id', userId);
+      const newUser = await knex.select('*').from('users').where('user_id', userId[0].user_id);
       return generateAccessToken(newUser[0], res);
     } else {
-      return generateAccessToken(emailExists.rows[0], res)
+      return generateAccessToken(emailExists[0], res)
     }
   } catch (err) {
     console.error(err);

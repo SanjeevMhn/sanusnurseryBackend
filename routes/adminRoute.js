@@ -10,4 +10,7 @@ router.route('/count')
 router.route('/users')
     .get(verifyJWT,verifyRoles(Role.Admin),adminController.getAllUsers);
 
+router.route('/user/:id')
+    .delete(verifyJWT,verifyRoles(Role.Admin), adminController.deleteUser);
+
 module.exports = router;

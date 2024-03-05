@@ -70,6 +70,7 @@ const getAllUsers = async (req, res) => {
         }
 
         const users = await knex.select(
+            'user_id',
             'user_name',
             'user_email',
             'user_img',
@@ -81,12 +82,12 @@ const getAllUsers = async (req, res) => {
             .offset(offset);
 
         const usersCount = await knex.count('user_id').from('users');
-
+        const usersOnlyCount = usersCount[0].count - adminArray.length
 
         res.status(200).json({
             currentPage: page,
-            totalPages: Math.ceil(usersCount[0].count / pageSize),
-            totalItems: usersCount[0].count,
+            totalPages: Math.ceil(usersOnlyCount / pageSize),
+            totalItems: usersOnlyCount,
             pageSize: pageSize,
             users: users
         })
@@ -96,7 +97,31 @@ const getAllUsers = async (req, res) => {
     }
 }
 
+const deleteUser = async (req,res) => {
+    try{
+        let userId = req.params.id;
+        userId = parseInt(userId);
+
+        if(!userId || userId == '' || userId == null){
+            return res.status(400).json({message:"User id not found"})
+        }
+
+        const userExists = await knex.select('*').from('users').where('user_id',userId);
+        if(!userExists || userExists.length == 0){
+            return res.status(400).json({message: 'User not found'});
+        }
+
+        await knex('users').where('user_id',userId).del();
+        res.status(200).json({message: 'User deleted successfully'});
+                
+    }catch(err){
+        console.error(err);
+        res.status(500).json({message: 'An error occured while trying to delete user'})
+    }
+}
+
 module.exports = {
     countAll,
-    getAllUsers
+    getAllUsers,
+    deleteUser
 }
