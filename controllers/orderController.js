@@ -295,7 +295,7 @@ const getOrderById = async (req, res) => {
                                         pc.payment_type
                                     from orders ord 
                                     inner join payment_detail pd on ord.order_id = pd.order_id 
-                                    inner join payment_category pc on pd.order_id = ord.order_id
+                                    inner join payment_category pc on pd.payment_type = pc.payment_id
                                     where ord.order_id = ?`, [orderId]);
 
         const orderItems = await knex.raw(`select 
