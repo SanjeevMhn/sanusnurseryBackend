@@ -3,6 +3,7 @@ const verifyJWT = require('../middleware/verifyJWT');
 const userController = require('../controllers/userController');
 
 router.route('/:id')
-  .patch(verifyJWT,userController.updateUserData);
+  .patch(verifyJWT,userController.updateUserData)
+  .get(verifyJWT,userController.getUserOrderHistory)
 
 module.exports = router;
