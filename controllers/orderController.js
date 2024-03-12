@@ -331,11 +331,12 @@ const getOrderItems = async (req, res) => {
         }
 
         const orderItems = await knex.raw(`select 
+                                                pd.prod_id,                                            
                                                 pd.prod_name,
-                                                pim.image_url,
+                                                pim.image_url as prod_img,
                                                 pc.prod_cat_name as prod_category, 
                                                 cast(pd.prod_price as integer), 
-                                                od.product_quantity 
+                                                od.product_quantity as prod_quantity 
                                             from order_details od 
                                             inner join products pd on od.product_id = pd.prod_id 
                                             inner join product_categories pc on pd.prod_category = pc.prod_cat_id 

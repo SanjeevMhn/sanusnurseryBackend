@@ -17,12 +17,17 @@ router.route('/id/:order_id')
     .patch(verifyJWT, verifyUserRoles(Role.Admin), orderController.updateOrder)
     .delete(verifyJWT, verifyUserRoles(Role.Admin), orderController.deleteOrder)
 
-router.route('/id/items/:order_id').get(verifyJWT, verifyUserRoles(Role.Admin), orderController.getOrderItems);
-router.route('/id/payment_detail/:order_id').get(verifyJWT, verifyUserRoles(Role.Admin), orderController.getPaymentDetail);
+router.route('/id/items/:order_id')
+    .get(verifyJWT, verifyUserRoles(Role.Admin,Role.User), orderController.getOrderItems);
 
-router.route('/count').get(verifyJWT, verifyUserRoles(Role.Admin), orderController.countOrders)
+router.route('/id/payment_detail/:order_id')
+    .get(verifyJWT, verifyUserRoles(Role.Admin), orderController.getPaymentDetail);
 
-router.route('/repeatedProducts').get(verifyJWT, verifyUserRoles(Role.Admin), orderController.getMostOrderedProducts);
+router.route('/count')
+    .get(verifyJWT, verifyUserRoles(Role.Admin), orderController.countOrders)
+
+router.route('/repeatedProducts')
+    .get(verifyJWT, verifyUserRoles(Role.Admin), orderController.getMostOrderedProducts);
 
 router.route('/orderDeliveryPaymentStatus').get(verifyJWT, verifyUserRoles(Role.Admin), orderController.getProductDeliveredAndPaymentStatus)
 
