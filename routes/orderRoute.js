@@ -44,4 +44,9 @@ router.route('/paymentTypes')
 router.route('/status/:status')
   .get(verifyJWT, verifyUserRoles(Role.Admin), orderController.getOrdersByOrderStatus)
 
+router.route('/order_detail/:id')
+  .patch(verifyJWT, verifyUserRoles(Role.Admin,Role.User), orderController.updateOrderItem)
+  .delete(verifyJWT, verifyUserRoles(Role.Admin,Role.User), orderController.deleteOrderItem)
+
+
 module.exports = router;

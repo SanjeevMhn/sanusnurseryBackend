@@ -331,7 +331,7 @@ const getOrderItems = async (req, res) => {
         }
 
         const orderItems = await knex.raw(`select 
-                                                pd.prod_id,                                            
+                                                od.order_detail_id,                                            
                                                 pd.prod_name,
                                                 pim.image_url as prod_img,
                                                 pc.prod_cat_name as prod_category, 
@@ -348,6 +348,56 @@ const getOrderItems = async (req, res) => {
     } catch (err) {
         console.log(err);
         res.status(500).json({ message: "An error occured while getting order items data" });
+    }
+}
+
+const deleteOrderItem = async (req,res) => {
+    try{
+        const orderItemId = req.params.id;
+        if(!orderItemId || orderItemId == null || orderItemId == ''){
+            return res.status(400).json({message: 'Order detail id not found'});
+        }
+
+        const orderItemExists = await knex.select('order_detail_id').from('order_details').where('order_detail_id',orderItemId);
+
+        if(orderItemExists.length == 0){
+            return res.status(400).json({message: 'Order item not found'});
+        }
+
+        await knex('order_details').where('order_detail_id',orderItemId).del();
+
+        res.status(200).json({message: 'Item deleted successfully'});
+        
+    }catch(err){
+        console.log(err);
+        res.status(500).json({message: 'An error occured while deleting order item'});
+    }
+}
+
+const updateOrderItem = async (req,res) => {
+    try{
+        const orderDetailId = req.params.id;
+        const updates = req.body;
+
+        if(!orderDetailId || orderDetailId == null || orderDetailId == ''){
+            return res.status(400).json({message: 'Order id not found'});
+        }
+
+        if(!updates || Object.keys(updates).length == 0){
+            return res.status(400).json({message: 'No updates found'});
+        }
+
+        const orderDetailExists = await knex.select('order_detail_id').from('order_details').where('order_detail_id', orderDetailId);
+        if(orderDetailExists.length == 0){
+            return res.status(400).json({message: 'Order item does not exist'});
+        }
+
+        await knex('order_details').where('order_detail_id', orderDetailId).update({...updates});
+        res.status(200).json({message: 'Order item updated successfully'});
+                         
+    }catch(err){
+        res.status(500).json({message: 'An error occured while updating order items'})
+        console.log(err)
     }
 }
 
@@ -568,5 +618,7 @@ module.exports = {
     searchMostOrderedProducts,
     getPaymentTypes,
     getOrdersByOrderStatus,
-    deleteOrder
+    deleteOrder,
+    updateOrderItem,
+    deleteOrderItem
 }
