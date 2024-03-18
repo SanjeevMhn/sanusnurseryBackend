@@ -45,7 +45,11 @@ const getUserOrderHistory = async(req,res) => {
                                     ord.order_date::text
                                   from orders ord
                                   where ord.user_id = ?
-                                  order by ord.created_at desc`,[userId])
+                                  order by (case 
+                                    when ord.order_status = 'PENDING' then 1
+                                    when ord.order_status = 'COMPLETED' then 2
+                                    when ord.order_status = 'CANCELLED' then 3
+                                  end)`,[userId])
     
     if(order.rows.length == 0){
       return res.status(400).json({message: 'No orders found'})
