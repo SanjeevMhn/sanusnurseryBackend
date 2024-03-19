@@ -69,17 +69,20 @@ const getAllUsers = async (req, res) => {
             adminArray.push(adminId.rows[0].user_id);
         }
 
-        const users = await knex.select(
-            'user_id',
-            'user_name',
-            'user_email',
-            'user_img',
-            'authProvider')
-            .from('users')
-            .whereNotIn('user_id', adminArray)
-            .orderBy('created_at', 'desc')
-            .limit(limit)
-            .offset(offset);
+        const users = await knex.raw(`select 
+                                        usr.user_id,
+                                        usr.user_name,
+                                        usr.user_email,
+                                        usr.user_img,
+                                        usr."authProvider",
+                                        usr.user_contact,
+                                        usr.user_address,
+                                        usr.created_at::TEXT
+                                    from users usr
+                                    where usr.user_id <> any (?)
+                                    order by usr.created_at desc
+                                    limit ?
+                                    offset ?`,[adminArray, limit, offset]);
 
         const usersCount = await knex.count('user_id').from('users');
         const usersOnlyCount = usersCount[0].count - adminArray.length
@@ -89,7 +92,7 @@ const getAllUsers = async (req, res) => {
             totalPages: Math.ceil(usersOnlyCount / pageSize),
             totalItems: usersOnlyCount,
             pageSize: pageSize,
-            users: users
+            users: users.rows
         })
     } catch (err) {
         console.error(err);
