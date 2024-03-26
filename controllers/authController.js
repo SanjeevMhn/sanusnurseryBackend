@@ -19,7 +19,7 @@ const handleLogin = async (req, res) => {
       return;
     }
 
-    if(foundUser[0].authProvider !== 'self'){
+    if (foundUser[0].authProvider !== 'self') {
       res.status(404).json({ message: "User not found" });
       return;
     }
@@ -200,7 +200,7 @@ const googleAuth = async (req, res) => {
 
     const { email, name, picture } = ticket.getPayload();
 
-    const emailExists = await knex.select('*').from('users').where('user_email',email) 
+    const emailExists = await knex.select('*').from('users').where('user_email', email) 
     
     if (!emailExists || emailExists.length == 0) {
       let userId = await knex("users")
